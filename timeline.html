@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>k+s timeline</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Background Video -->
+    <video id="bg-video" loop muted>
+        <source src="video/video.mp4" type="video/mp4">
+        your browser does not support the video tag.
+    </video>
+    
+    <!-- Typewriter Text -->
+    <header>
+        <h1 id="typewriter">our timeline</h1>
+        <div class="nav-buttons">
+            <button onclick="location.href='index.html'">home</button>
+            <button onclick="location.href='comments.html'">comments</button>
+        </div>
+    </header>
+
+    <section class="timeline">
+        <div class="milestone">
+            <h2>23-02-2025</h2>
+            <div class="info">
+                <p>the first day we met. we joked, made fun of each other, and became friends.</p>
+            </div>
+        </div>
+
+        <div class="milestone">
+            <h2>12-03-2025</h2>
+            <div class="info">
+                <p>the day I realized i was in love. i asked him to be mine.</p>
+            </div>
+        </div>
+
+        <div class="milestone">
+            <h2>13-03-2025</h2>
+            <div class="info">
+                <p>our website was created. 6 hours of planning and we came up with this!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Volume Control -->
+    <div class="volume-container">
+        <div class="volume-controls">
+            <i class="volume-icon" id="mute-icon">🔇</i>
+            <div class="slider-container">
+                <div class="slider-track"></div>
+                <div class="slider-fill"></div>
+                <div class="slider-thumb"></div>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+            </div>
+            <i class="volume-icon" id="max-volume-icon">🔊</i>
+        </div>
+    </div>
+
+    <script src="js/scripts.js"></script>
+</body>
+
+</html>

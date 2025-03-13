@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>k+s comments</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Background Video -->
+    <video id="bg-video" loop muted>
+        <source src="video/video.mp4" type="video/mp4">
+        your browser does not support the video tag.
+    </video>
+
+    <!-- Typewriter Text -->
+    <header>
+        <h1 id="typewriter">talk to us</h1>
+        <div class="nav-buttons">
+            <button onclick="location.href='index.html'">home</button>
+            <button onclick="location.href='timeline.html'">timeline</button>
+        </div>
+    </header>
+
+    <div class="comments-section">
+        <h2>comments</h2>
+        <form id="comment-form">
+            <textarea id="comment-input" placeholder="write a comment..."></textarea>
+            <button type="submit">submit</button>
+        </form>
+        <div class="comments-container"></div>
+    </div>
+
+    <!-- Volume Control -->
+    <div class="volume-container">
+        <div class="volume-controls">
+            <i class="volume-icon" id="mute-icon">🔇</i>
+            <div class="slider-container">
+                <div class="slider-track"></div>
+                <div class="slider-fill"></div>
+                <div class="slider-thumb"></div>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+            </div>
+            <i class="volume-icon" id="max-volume-icon">🔊</i>
+        </div>
+    </div>
+
+    <script src="js/scripts.js"></script>
+</body>
+
+</html>
