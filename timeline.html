@@ -4,63 +4,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>k+s timeline</title>
+    <meta name="description" content="Our love story timeline - Key moments in Kystar and Snickers' relationship">
+    <meta name="theme-color" content="#d935f0">
+    <title>K+S • Timeline</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="video/video.mp4" as="video" type="video/mp4">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
 </head>
 
 <body>
     <!-- Background Video -->
-    <video id="bg-video" autoplay loop muted>
+    <video id="bg-video" autoplay loop muted playsinline>
         <source src="video/video.mp4" type="video/mp4">
-        your browser does not support the video tag.
+        Your browser does not support the video tag.
     </video>
     
-    <!-- Typewriter Text -->
-    <header>
-        <h1 id="typewriter">our timeline</h1>
-        <div class="nav-buttons">
-            <button onclick="location.href='index.html'">home</button>
-            <button onclick="location.href='comments.html'">comments</button>
-        </div>
-    </header>
+    <!-- Main Content -->
+    <main>
+        <!-- Header -->
+        <header>
+            <h1 id="typewriter">our timeline</h1>
+            <nav class="nav-buttons" role="navigation" aria-label="Main navigation">
+                <button onclick="location.href='index.html'" aria-label="Go to homepage">
+                    home
+                </button>
+                <button onclick="location.href='comments.html'" aria-label="Leave a comment">
+                    comments
+                </button>
+            </nav>
+        </header>
 
-    <section class="timeline">
-        <div class="milestone">
-            <h2>23-02-2025</h2>
-            <div class="info">
-                <p>the first day we met. we joked, made fun of each other, and became friends.</p>
-            </div>
-        </div>
+        <!-- Timeline Section -->
+        <section class="timeline" role="main" aria-label="Relationship timeline">
+            <article class="milestone" tabindex="0" role="article">
+                <h2>February 23, 2025</h2>
+                <div class="info">
+                    <p>The first day we met. We joked, made fun of each other, and became friends. Little did we know this was the beginning of something beautiful.</p>
+                </div>
+            </article>
 
-        <div class="milestone">
-            <h2>12-03-2025</h2>
-            <div class="info">
-                <p>the day I realized i was in love. i asked him to be mine.</p>
-            </div>
-        </div>
+            <article class="milestone" tabindex="0" role="article">
+                <h2>March 12, 2025</h2>
+                <div class="info">
+                    <p>The day I realized I was in love. My heart knew what my mind was still figuring out. I gathered the courage to ask him to be mine.</p>
+                </div>
+            </article>
 
-        <div class="milestone">
-            <h2>13-03-2025</h2>
-            <div class="info">
-                <p>our website was created. 6 hours of planning and we came up with this!</p>
-            </div>
-        </div>
-    </section>
+            <article class="milestone" tabindex="0" role="article">
+                <h2>March 13, 2025</h2>
+                <div class="info">
+                    <p>Our website was created! After 6 hours of planning, designing, and coding, we brought our love story to life on the web. This is our digital love letter to the world.</p>
+                </div>
+            </article>
+        </section>
+    </main>
 
     <!-- Volume Control -->
-    <div class="volume-container">
+    <aside class="volume-container" aria-label="Video volume controls">
         <div class="volume-controls">
-            <i class="volume-icon" id="mute-icon">🔇</i>
-            <div class="slider-container">
+            <button class="volume-icon" id="mute-icon" aria-label="Mute video" type="button">
+                🔇
+            </button>
+            <div class="slider-container" role="slider" aria-label="Volume slider">
                 <div class="slider-track"></div>
                 <div class="slider-fill"></div>
                 <div class="slider-thumb"></div>
-                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" 
+                       aria-label="Adjust video volume">
             </div>
-            <i class="volume-icon" id="max-volume-icon">🔊</i>
+            <button class="volume-icon" id="max-volume-icon" aria-label="Maximum volume" type="button">
+                🔊
+            </button>
         </div>
-    </div>
+    </aside>
 
+    <!-- Scripts -->
     <script src="js/scripts.js"></script>
 </body>
 
