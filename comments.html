@@ -27,7 +27,7 @@
     </video>
 
     <!-- Main Content -->
-    <main>
+    <main class="main-container">
         <!-- Header -->
         <header>
             <h1 id="typewriter">talk to us</h1>
@@ -43,27 +43,68 @@
 
         <!-- Comments Section -->
         <section class="comments-section" role="main" aria-label="Comments section">
-            <h2>Comments</h2>
+            <h2>Share Your Thoughts</h2>
             
             <form id="comment-form" role="form" aria-label="Add a comment">
-                <label for="comment-input" class="sr-only">Your comment</label>
-                <textarea 
-                    id="comment-input" 
-                    placeholder="Share your thoughts about our story... (Ctrl+Enter to submit)"
-                    maxlength="500"
-                    aria-describedby="comment-help"
-                    required>
-                </textarea>
-                <div id="comment-help" class="sr-only">
-                    Maximum 500 characters. Use Ctrl+Enter to submit quickly.
+                <div class="form-group">
+                    <label for="username-input" class="form-label">Your Name</label>
+                    <input 
+                        type="text" 
+                        id="username-input" 
+                        name="username"
+                        placeholder="Enter your name (2-50 characters)"
+                        minlength="2"
+                        maxlength="50"
+                        pattern="[a-zA-Z0-9\s]+"
+                        title="Only letters, numbers, and spaces allowed"
+                        aria-describedby="username-help"
+                        required>
+                    <div id="username-help" class="form-help">
+                        Use only letters, numbers, and spaces
+                    </div>
+                    <div class="validation-message" id="username-error"></div>
                 </div>
-                <button type="submit" aria-label="Submit your comment">
-                    Submit Comment
+
+                <div class="form-group">
+                    <label for="comment-input" class="form-label">Your Comment</label>
+                    <textarea 
+                        id="comment-input" 
+                        name="comment_text"
+                        placeholder="Share your thoughts about our story... (10-500 characters)"
+                        minlength="10"
+                        maxlength="500"
+                        aria-describedby="comment-help"
+                        required>
+                    </textarea>
+                    <div id="comment-help" class="form-help">
+                        <span class="char-count">0/500 characters</span>
+                    </div>
+                    <div class="validation-message" id="comment-error"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" aria-label="Submit your comment">
+                    <span class="btn-text">Submit Comment</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        Submitting...
+                    </span>
                 </button>
             </form>
             
             <div class="comments-container" role="log" aria-label="Comments list" aria-live="polite">
-                <!-- Comments will be dynamically inserted here -->
+                <div class="comments-header">
+                    <h3>Comments <span class="comment-count">(0)</span></h3>
+                </div>
+                <div class="comments-list">
+                    <!-- Comments will be dynamically inserted here -->
+                </div>
+                <div class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Loading more comments...</span>
+                </div>
+                <div class="no-more-comments" style="display: none;">
+                    <p>No more comments to load</p>
+                </div>
             </div>
         </section>
     </main>
@@ -87,6 +128,9 @@
         </div>
     </aside>
 
+    <!-- Toast Notifications -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <!-- Screen reader only styles -->
     <style>
         .sr-only {
@@ -103,7 +147,8 @@
         
         .keyboard-navigation button:focus-visible,
         .keyboard-navigation .milestone:focus-visible,
-        .keyboard-navigation textarea:focus-visible {
+        .keyboard-navigation textarea:focus-visible,
+        .keyboard-navigation input:focus-visible {
             outline: 3px solid var(--primary-400);
             outline-offset: 2px;
         }

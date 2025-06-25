@@ -141,9 +141,20 @@ class VolumeController {
 class CommentSystem {
   constructor() {
     this.commentForm = document.getElementById("comment-form");
+    this.usernameInput = document.getElementById("username-input");
     this.commentInput = document.getElementById("comment-input");
-    this.commentsContainer = document.querySelector(".comments-container");
-    this.comments = this.loadComments();
+    this.commentsContainer = document.querySelector(".comments-list");
+    this.commentCount = document.querySelector(".comment-count");
+    this.loadingIndicator = document.querySelector(".loading-indicator");
+    this.noMoreComments = document.querySelector(".no-more-comments");
+    this.submitBtn = document.querySelector(".submit-btn");
+    this.btnText = document.querySelector(".btn-text");
+    this.btnLoading = document.querySelector(".btn-loading");
+    
+    this.currentPage = 1;
+    this.isLoading = false;
+    this.hasMore = true;
+    this.totalComments = 0;
     
     this.init();
   }
@@ -152,19 +163,37 @@ class CommentSystem {
     if (!this.commentForm) return;
     
     this.bindEvents();
-    this.renderComments();
+    this.loadComments();
+    this.setupInfiniteScroll();
   }
   
   bindEvents() {
+    // Form submission
     this.commentForm.addEventListener("submit", (e) => {
       e.preventDefault();
       this.handleSubmit();
     });
     
-    // Auto-resize textarea
+    // Real-time validation
+    if (this.usernameInput) {
+      this.usernameInput.addEventListener("input", () => {
+        this.validateUsername();
+      });
+      
+      this.usernameInput.addEventListener("blur", () => {
+        this.validateUsername();
+      });
+    }
+    
     if (this.commentInput) {
       this.commentInput.addEventListener("input", () => {
+        this.validateComment();
+        this.updateCharCount();
         this.autoResizeTextarea();
+      });
+      
+      this.commentInput.addEventListener("blur", () => {
+        this.validateComment();
       });
     }
     
@@ -177,70 +206,81 @@ class CommentSystem {
     });
   }
   
-  handleSubmit() {
-    const commentText = this.commentInput.value.trim();
+  validateUsername() {
+    const username = this.usernameInput.value.trim();
+    const errorElement = document.getElementById("username-error");
     
-    if (!commentText) {
-      this.showFeedback("Please enter a comment", "error");
-      return;
+    let isValid = true;
+    let errorMessage = "";
+    
+    if (!username) {
+      isValid = false;
+      errorMessage = "Name is required";
+    } else if (username.length < 2) {
+      isValid = false;
+      errorMessage = "Name must be at least 2 characters";
+    } else if (username.length > 50) {
+      isValid = false;
+      errorMessage = "Name must be less than 50 characters";
+    } else if (!/^[a-zA-Z0-9\s]+$/.test(username)) {
+      isValid = false;
+      errorMessage = "Name can only contain letters, numbers, and spaces";
     }
     
-    if (commentText.length > 500) {
-      this.showFeedback("Comment is too long (max 500 characters)", "error");
-      return;
+    this.updateValidationState(this.usernameInput, errorElement, isValid, errorMessage);
+    return isValid;
+  }
+  
+  validateComment() {
+    const comment = this.commentInput.value.trim();
+    const errorElement = document.getElementById("comment-error");
+    
+    let isValid = true;
+    let errorMessage = "";
+    
+    if (!comment) {
+      isValid = false;
+      errorMessage = "Comment is required";
+    } else if (comment.length < 10) {
+      isValid = false;
+      errorMessage = "Comment must be at least 10 characters";
+    } else if (comment.length > 500) {
+      isValid = false;
+      errorMessage = "Comment must be less than 500 characters";
     }
     
-    const comment = {
-      id: Date.now(),
-      text: commentText,
-      timestamp: new Date().toISOString(),
-      likes: 0
-    };
-    
-    this.addComment(comment);
-    this.commentInput.value = "";
-    this.autoResizeTextarea();
-    this.showFeedback("Comment added successfully!", "success");
+    this.updateValidationState(this.commentInput, errorElement, isValid, errorMessage);
+    return isValid;
   }
   
-  addComment(comment) {
-    this.comments.unshift(comment);
-    this.saveComments();
-    this.renderComments();
-  }
-  
-  renderComments() {
-    if (!this.commentsContainer) return;
-    
-    if (this.comments.length === 0) {
-      this.commentsContainer.innerHTML = `
-        <div class="no-comments">
-          <p style="text-align: center; color: var(--neutral-400); font-style: italic;">
-            No comments yet. Be the first to share your thoughts!
-          </p>
-        </div>
-      `;
-      return;
+  updateValidationState(input, errorElement, isValid, errorMessage) {
+    if (isValid) {
+      input.classList.remove("error");
+      input.classList.add("success");
+      errorElement.textContent = "";
+      errorElement.classList.remove("show");
+    } else {
+      input.classList.remove("success");
+      input.classList.add("error");
+      errorElement.textContent = errorMessage;
+      errorElement.classList.add("show");
     }
-    
-    this.commentsContainer.innerHTML = this.comments
-      .map(comment => this.createCommentHTML(comment))
-      .join("");
   }
   
-  createCommentHTML(comment) {
-    const timeAgo = this.getTimeAgo(comment.timestamp);
-    
-    return `
-      <div class="comment" data-id="${comment.id}">
-        <div class="comment-content">
-          <p>${this.escapeHtml(comment.text)}</p>
-        </div>
-        <div class="comment-meta">
-          <span class="comment-time">${timeAgo}</span>
-        </div>
-      </div>
-    `;
+  updateCharCount() {
+    const charCount = document.querySelector(".char-count");
+    if (charCount && this.commentInput) {
+      const count = this.commentInput.value.length;
+      charCount.textContent = `${count}/500 characters`;
+      
+      if (count > 450) {
+        charCount.style.color = "var(--warning-500)";
+      } else if (count > 500) {
+        charCount.style.color = "var(--error-500)";
+      } else {
+        charCount.style.color = "var(--neutral-400)";
+      }
+    }
   }
   
   autoResizeTextarea() {
@@ -250,36 +290,224 @@ class CommentSystem {
     this.commentInput.style.height = Math.min(this.commentInput.scrollHeight, 200) + 'px';
   }
   
-  showFeedback(message, type = "info") {
-    // Remove existing feedback
-    const existingFeedback = document.querySelector(".feedback-message");
-    if (existingFeedback) {
-      existingFeedback.remove();
+  async handleSubmit() {
+    // Validate form
+    const isUsernameValid = this.validateUsername();
+    const isCommentValid = this.validateComment();
+    
+    if (!isUsernameValid || !isCommentValid) {
+      this.showToast("Please fix the errors above", "error");
+      return;
     }
     
-    const feedback = document.createElement("div");
-    feedback.className = `feedback-message feedback-${type}`;
-    feedback.textContent = message;
-    feedback.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      border-radius: 8px;
-      color: white;
-      font-weight: 500;
-      z-index: 1000;
-      animation: slideIn 0.3s ease-out;
-      background: ${type === 'error' ? 'var(--error-500)' : 'var(--success-500)'};
-      box-shadow: var(--shadow-lg);
+    const username = this.usernameInput.value.trim();
+    const commentText = this.commentInput.value.trim();
+    
+    // Set loading state
+    this.setSubmitLoading(true);
+    
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          comment_text: commentText
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        this.showToast("Comment added successfully!", "success");
+        this.resetForm();
+        this.refreshComments();
+      } else {
+        throw new Error(data.error || 'Failed to submit comment');
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      this.showToast(error.message || "Failed to submit comment. Please try again.", "error");
+    } finally {
+      this.setSubmitLoading(false);
+    }
+  }
+  
+  setSubmitLoading(loading) {
+    if (loading) {
+      this.submitBtn.disabled = true;
+      this.btnText.style.display = 'none';
+      this.btnLoading.style.display = 'flex';
+    } else {
+      this.submitBtn.disabled = false;
+      this.btnText.style.display = 'inline';
+      this.btnLoading.style.display = 'none';
+    }
+  }
+  
+  resetForm() {
+    this.usernameInput.value = '';
+    this.commentInput.value = '';
+    this.usernameInput.classList.remove('success', 'error');
+    this.commentInput.classList.remove('success', 'error');
+    document.getElementById('username-error').classList.remove('show');
+    document.getElementById('comment-error').classList.remove('show');
+    this.updateCharCount();
+    this.autoResizeTextarea();
+  }
+  
+  async loadComments(page = 1, append = false) {
+    if (this.isLoading) return;
+    
+    this.isLoading = true;
+    this.showLoading(true);
+    
+    try {
+      const response = await fetch(`/api/comments?page=${page}&limit=5`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        this.totalComments = data.totalCount;
+        this.hasMore = data.hasMore;
+        this.updateCommentCount();
+        
+        if (append) {
+          this.appendComments(data.comments);
+        } else {
+          this.renderComments(data.comments);
+        }
+        
+        if (!this.hasMore) {
+          this.showNoMoreComments();
+        }
+      } else {
+        throw new Error(data.error || 'Failed to load comments');
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+      this.showToast("Failed to load comments", "error");
+    } finally {
+      this.isLoading = false;
+      this.showLoading(false);
+    }
+  }
+  
+  async refreshComments() {
+    this.currentPage = 1;
+    this.hasMore = true;
+    this.hideNoMoreComments();
+    await this.loadComments(1, false);
+  }
+  
+  renderComments(comments) {
+    if (!this.commentsContainer) return;
+    
+    if (comments.length === 0) {
+      this.commentsContainer.innerHTML = `
+        <div class="no-comments">
+          <p>No comments yet. Be the first to share your thoughts!</p>
+        </div>
+      `;
+      return;
+    }
+    
+    this.commentsContainer.innerHTML = comments
+      .map(comment => this.createCommentHTML(comment))
+      .join("");
+  }
+  
+  appendComments(comments) {
+    if (!this.commentsContainer || comments.length === 0) return;
+    
+    const commentsHTML = comments
+      .map(comment => this.createCommentHTML(comment))
+      .join("");
+    
+    this.commentsContainer.insertAdjacentHTML('beforeend', commentsHTML);
+  }
+  
+  createCommentHTML(comment) {
+    const timeAgo = this.getTimeAgo(comment.timestamp);
+    const likes = comment.likes || 0;
+    
+    return `
+      <div class="comment" data-id="${comment.id}">
+        <div class="comment-header">
+          <span class="comment-username">${this.escapeHtml(comment.username)}</span>
+          <span class="comment-timestamp">${timeAgo}</span>
+        </div>
+        <div class="comment-text">
+          ${this.escapeHtml(comment.comment_text)}
+        </div>
+        <div class="comment-actions">
+          <button class="comment-action like-btn" data-id="${comment.id}">
+            ❤️ <span class="like-count">${likes}</span>
+          </button>
+          <button class="comment-action report-btn" data-id="${comment.id}">
+            🚩 Report
+          </button>
+        </div>
+      </div>
     `;
+  }
+  
+  setupInfiniteScroll() {
+    if (!this.commentsContainer) return;
     
-    document.body.appendChild(feedback);
+    const scrollContainer = this.commentsContainer;
     
+    scrollContainer.addEventListener('scroll', () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      
+      // Load more when user scrolls to within 100px of bottom
+      if (scrollTop + clientHeight >= scrollHeight - 100 && this.hasMore && !this.isLoading) {
+        this.currentPage++;
+        this.loadComments(this.currentPage, true);
+      }
+    });
+  }
+  
+  updateCommentCount() {
+    if (this.commentCount) {
+      this.commentCount.textContent = `(${this.totalComments})`;
+    }
+  }
+  
+  showLoading(show) {
+    if (this.loadingIndicator) {
+      this.loadingIndicator.style.display = show ? 'flex' : 'none';
+    }
+  }
+  
+  showNoMoreComments() {
+    if (this.noMoreComments) {
+      this.noMoreComments.style.display = 'block';
+    }
+  }
+  
+  hideNoMoreComments() {
+    if (this.noMoreComments) {
+      this.noMoreComments.style.display = 'none';
+    }
+  }
+  
+  showToast(message, type = "info") {
+    const toastContainer = document.getElementById("toast-container");
+    if (!toastContainer) return;
+    
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after 5 seconds
     setTimeout(() => {
-      feedback.style.animation = "slideOut 0.3s ease-in forwards";
-      setTimeout(() => feedback.remove(), 300);
-    }, 3000);
+      toast.style.animation = "slideOut 0.3s ease-in forwards";
+      setTimeout(() => toast.remove(), 300);
+    }, 5000);
   }
   
   getTimeAgo(timestamp) {
@@ -290,31 +518,14 @@ class CommentSystem {
     if (diffInSeconds < 60) return "just now";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return commentTime.toLocaleDateString();
   }
   
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-  }
-  
-  loadComments() {
-    try {
-      const saved = localStorage.getItem('ks-comments');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.warn('Failed to load comments from localStorage:', error);
-      return [];
-    }
-  }
-  
-  saveComments() {
-    try {
-      localStorage.setItem('ks-comments', JSON.stringify(this.comments));
-    } catch (error) {
-      console.warn('Failed to save comments to localStorage:', error);
-    }
   }
 }
 
@@ -544,9 +755,9 @@ class PerformanceOptimizer {
       });
     }, observerOptions);
     
-    // Observe timeline milestones
-    document.querySelectorAll('.milestone').forEach(milestone => {
-      observer.observe(milestone);
+    // Observe timeline milestones and comments
+    document.querySelectorAll('.milestone, .comment').forEach(element => {
+      observer.observe(element);
     });
   }
   
